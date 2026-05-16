@@ -6,7 +6,7 @@ import logging
 from fastapi import FastAPI, HTTPException
 
 from app.agent import create_agent
-from app.catalog import CatalogStore
+from app.catalog import CatalogStore, build_catalog
 from app.models import ChatRequest, ChatResponse
 
 
@@ -19,7 +19,12 @@ app = FastAPI(title="SHL Recommendation Agent", version="1.0.0")
 @app.on_event("startup")
 async def startup_event() -> None:
     LOGGER.info("Loading catalog artifacts and embedding model")
-    app.state.catalog = await asyncio.to_thread(CatalogStore.load)
+    try:
+        app.state.catalog = await asyncio.to_thread(CatalogStore.load)
+    except FileNotFoundError:
+        LOGGER.info("Catalog artifacts were missing; building them now")
+        await asyncio.to_thread(build_catalog)
+        app.state.catalog = await asyncio.to_thread(CatalogStore.load)
 
 
 def _get_agent() -> object:
