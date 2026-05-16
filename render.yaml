@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: shl-recommendation-agent
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python app/catalog.py
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
