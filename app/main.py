@@ -45,10 +45,16 @@ async def health() -> dict[str, str]:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
-    agent = _get_agent()
-    result = await agent.handle(request.messages)
-    return ChatResponse(
-        reply=result.reply,
-        recommendations=result.recommendations,
-        end_of_conversation=result.end_of_conversation,
-    )
+    try:
+        agent = _get_agent()
+        result = await agent.handle(request.messages)
+        return ChatResponse(
+            reply=result.reply,
+            recommendations=result.recommendations,
+            end_of_conversation=result.end_of_conversation,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        LOGGER.exception("/chat failed")
+        raise HTTPException(status_code=502, detail=f"chat failed: {exc}") from exc
