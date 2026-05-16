@@ -140,6 +140,14 @@ def _is_off_topic(text: str) -> bool:
     return any(re.search(pattern, normalized) for pattern in OFF_TOPIC_PATTERNS)
 
 
+def _is_comparison_question(text: str) -> bool:
+    normalized = _normalize(text)
+    return any(
+        keyword in normalized
+        for keyword in ("difference between", "compare", "comparison", "vs", "versus", "better than")
+    )
+
+
 def _needs_clarification(messages: list[ChatMessage]) -> bool:
     user_text = " ".join(message.content for message in messages if message.role == "user")
     if not user_text.strip():
